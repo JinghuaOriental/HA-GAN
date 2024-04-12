@@ -1,0 +1,7 @@
+num_jobs: 8
+img_size: 128
+input_data_dir: /home/hyj/python_files2/AAA_data/EGFR/CT_112_112_112/0_255_original_niigz/egfr_no_niigz
+output_data_dir: /home/hyj/python_files2/AAA_data/EGFR/CT_112_112_112/egfr_no_preprocessed/
+low_threshold: -1024
+high_threshold: 600
+trim_blank_slices: true

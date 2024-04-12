@@ -1,0 +1,24 @@
+# config.yaml
+
+is_pretrained: True
+pretrained_models_dir: /home/hyj/python_files2/Generate/GANs/HAGAN/HA-GAN/pretrained_weight/COPD_HA_GAN_pretrained
+batch_size: 8
+workers: 8
+img_size: 128
+num_iter: 80000
+log_iter: 20
+continue_iter: 0
+latent_dim: 1024
+g_iter: 1
+lr_g: 0.0001
+lr_d: 0.0004
+lr_e: 0.0001
+data_dir: /home/hyj/python_files2/AAA_data/EGFR/CT_112_112_112/egfr_no_preprocessed  # 训练数据集路径
+# data_dir: /home/hyj/python_files2/AAA_data/egfr_data_dir  # 训练数据集路径
+# exp_name: "HAGAN_batchsize${batch_size}_imgsize_${img_size}_numiter${num_iter}"
+exp_name: HAGAN_bs8_imgsize128_numiter80000_fold0
+fold: 0
+
+# 条件生成的配置
+lambda_class: 0.1
+num_class: 0

@@ -1,0 +1,4 @@
+pretrained_weight
+2_train/checkpoint
+2_train/__pycache__
+2_train/models/__pycache__
