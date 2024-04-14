@@ -84,43 +84,31 @@ def main():
     if args.is_pretrained:
         # 循环创建模型和加载权重
         for model_name in model_name_list:
+            # 预训练权重是256x256x256的，所以这里需要调整模型的输入尺寸
             ckpt_path = os.path.join(args.pretrained_models_dir, f"{model_name}_iter80000.pth")
             ckpt = torch.load(ckpt_path, map_location='cuda')
             ckpt['model'] = trim_state_dict_name(ckpt['model'])
             model_variable_dict[model_name].load_state_dict(ckpt['model'])
-            optimizer_variable_dict[model_name].load_state_dict(ckpt['optimizer'])
+            # optimizer_variable_dict[model_name].load_state_dict(ckpt['optimizer'])
 
         del ckpt
         print(f"Ckpt {args.pretrained_models_dir} loaded.")
             
     # Resume from a previous checkpoint
     elif args.continue_iter != 0:
-       
-        ckpt_path = f"./checkpoint/{args.exp_name}/G_iter{args.continue_iter}.pth"
-        ckpt = torch.load(ckpt_path, map_location='cuda')
-        ckpt['model'] = trim_state_dict_name(ckpt['model'])
-        G.load_state_dict(ckpt['model'])
-        g_optimizer.load_state_dict(ckpt['optimizer'])
 
-        ckpt_path = f"./checkpoint/{args.exp_name}/D_iter{args.continue_iter}.pth"
-        ckpt = torch.load(ckpt_path, map_location='cuda')
-        ckpt['model'] = trim_state_dict_name(ckpt['model'])
-        D.load_state_dict(ckpt['model'])
-        d_optimizer.load_state_dict(ckpt['optimizer'])
+        for model_name in model_name_list:
+            ckpt_path = f"./checkpoint/{args.exp_name}/{model_name}_iter{args.continue_iter}.pth"
+            ckpt = torch.load(ckpt_path, map_location='cuda')
+            ckpt['model'] = trim_state_dict_name(ckpt['model'])
+            model_variable_dict[model_name].load_state_dict(ckpt['model'])
+            optimizer_variable_dict[model_name].load_state_dict(ckpt['optimizer'])
 
-        ckpt_path = f"./checkpoint/{args.exp_name}/E_iter{args.continue_iter}.pth"
-        ckpt = torch.load(ckpt_path, map_location='cuda')
-        ckpt['model'] = trim_state_dict_name(ckpt['model'])
-        E.load_state_dict(ckpt['model'])
-        e_optimizer.load_state_dict(ckpt['optimizer'])
-
-        ckpt_path = f"./checkpoint/{args.exp_name}/Sub_E_iter{args.continue_iter}.pth"
-        ckpt = torch.load(ckpt_path, map_location='cuda')
-        ckpt['model'] = trim_state_dict_name(ckpt['model'])
-        Sub_E.load_state_dict(ckpt['model'])
-        sub_e_optimizer.load_state_dict(ckpt['optimizer'])
         del ckpt
-        print("Ckpt", args.exp_name, args.continue_iter, "loaded.")
+        print(f"Ckpt {args.exp_name} {args.continue_iter} loaded.")
+
+    else:
+        print("Training from scratch.")
 
     G = nn.DataParallel(G)
     D = nn.DataParallel(D)
@@ -144,7 +132,7 @@ def main():
     summary_writer = SummaryWriter(f"./checkpoint/{args.exp_name}")
     
     # save configurations to a dictionary
-    with open(os.path.join(f"./checkpoint/{args.exp_name}configs.json"), 'w') as f:
+    with open(os.path.join(f"./checkpoint/{args.exp_name}_configs.json"), 'w') as f:
         json.dump(vars(args), f, indent=2)
 
     for p in D.parameters():  
@@ -276,7 +264,7 @@ def main():
         else: # conditional
             sub_x_hat_rec, sub_x_hat_rec_small = G(h=sub_z_hat, crop_idx=crop_idx, class_label=class_label_onehot)
         
-        sub_e_loss = (loss_mse(sub_x_hat_rec,real_images_crop) + loss_mse(sub_x_hat_rec_small,real_images_small))/2.
+        sub_e_loss = (loss_mse(sub_x_hat_rec,real_images_crop) + loss_mse(sub_x_hat_rec_small,real_images_small))/2.1
 
         sub_e_loss.backward()
         sub_e_optimizer.step()
@@ -293,7 +281,7 @@ def main():
         ###############################################
         # Visualization with Tensorboard
         ###############################################
-        if iteration%200 == 0:
+        if iteration%2 == 0:
             print('[{:>5d}/{:>5d}]'.format(iteration,args.num_iter),
                   'D_real: {:<8.3}'.format(d_real_loss.item()),
                   'D_fake: {:<8.3}'.format(d_fake_loss.item()), 
@@ -327,6 +315,6 @@ def main():
             torch.save({'model':Sub_E.state_dict(), 'optimizer':sub_e_optimizer.state_dict()},f'./checkpoint/{args.exp_name}/Sub_E_iter{str(iteration+1)}.pth')
 
 if __name__ == '__main__':
-    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    os.chdir(os.path.dirname(__file__))
     os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2"
     main()

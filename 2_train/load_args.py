@@ -2,13 +2,13 @@
 Author: JinghuaOriental 1795185859@qq.com
 Date: 2024-04-12 14:48:28
 LastEditors: JinghuaOriental 1795185859@qq.com
-LastEditTime: 2024-04-12 18:21:34
+LastEditTime: 2024-04-13 09:58:42
 FilePath: /hyj/python_files2/Generate/GANs/HAGAN/HA-GAN/2_train/load_args.py
 Description: 加载YAML配置文件
 '''
 
-import yaml
 import argparse
+import yaml
 
 
 def load_config_yaml(file_path):
